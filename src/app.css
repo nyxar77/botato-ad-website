@@ -1,0 +1,95 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Bricolage Grotesque Variable', 'Cairo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Palette: studio blue light, jersey pink, volt green. */
+  --color-volt: #c6f432;
+  --color-volt-ink: #1c2400;
+  --color-pink: #ff4f8b;
+  --color-studio: #2f6bff;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+
+  --animate-ants: ants 0.9s linear infinite;
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes ants {
+    to {
+      stroke-dashoffset: -24;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+
+:root {
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --raised: #f1ede6;
+  --line: #e2ddd3;
+  --fg: #15141a;
+  --muted: #6c6875;
+  /* Volt is unreadable on cream, so light mode leans on the studio blue. */
+  --accent: #2f6bff;
+  --accent-ink: #ffffff;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0d0d12;
+  --surface: #15151c;
+  --raised: #1d1d26;
+  --line: #2a2a35;
+  --fg: #f3f1ec;
+  --muted: #9a97a6;
+  --accent: #c6f432;
+  --accent-ink: #1c2400;
+  color-scheme: dark;
+}
+
+html:lang(ar) {
+  --font-sans: 'Cairo Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    transition: background-color 0.25s, color 0.25s;
+  }
+  ::selection {
+    @apply bg-pink text-white;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
