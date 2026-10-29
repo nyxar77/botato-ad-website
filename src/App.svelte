@@ -43,21 +43,16 @@
 </script>
 
 <Tooltip.Provider>
-  <header class="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md">
+  <header class="sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur-md">
     <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-      <a href="#top" class="flex items-center gap-2.5">
-        <span class="grid size-8 place-items-center rounded-lg bg-pink font-mono text-sm font-bold text-white">b</span>
-        <span class="leading-tight">
-          <span class="block font-extrabold tracking-tight" dir="ltr">botato</span>
-          <span class="hidden text-xs text-muted sm:block">{t.tagline}</span>
-        </span>
-      </a>
-      <nav class="hidden items-center gap-6 text-sm text-muted md:flex">
-        <a href="#spots" class="hover:text-fg">{t.navSpots}</a>
-        <a href="#how" class="hover:text-fg">{t.navHow}</a>
-        <a href="#pay" class="hover:text-fg">{t.navPay}</a>
-      </nav>
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-6">
+        <nav class="flex items-center gap-6 text-sm font-medium text-muted">
+          <a href="#spots" class="transition-colors hover:text-fg">{t.navSpots}</a>
+          <a href="#how" class="transition-colors hover:text-fg">{t.navHow}</a>
+          <a href="#pay" class="transition-colors hover:text-fg">{t.navPay}</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
         <LanguageSelect />
         <CurrencySwitch />
         <ThemeToggle />
@@ -165,24 +160,31 @@
     </section>
 
     <!-- Payment + order -->
-    <section id="pay" class="mt-12 grid gap-4 lg:grid-cols-2">
-      <div class="flex flex-col gap-2.5 rounded-2xl border border-line bg-surface p-5">
-        <img src="/cih.png" alt="CIH Bank" width="331" height="93" class="mb-1 h-8 w-auto self-start rounded bg-white p-1" loading="lazy" />
-        <h2 class="text-lg font-bold">{t.payTitle}</h2>
-        <CopyRow label={t.holder} value={BANK.holder} copyable={false} />
-        <CopyRow label="RIB" value={BANK.rib} compact />
-        <CopyRow label="IBAN" value={BANK.iban} compact />
-        <CopyRow label="SWIFT" value={BANK.swift} />
+    <section id="pay" class="mt-12 grid gap-6 lg:grid-cols-2">
+      <div class="relative flex flex-col gap-3 rounded-2xl border-2 border-accent/60 bg-surface p-6 shadow-xl shadow-accent/5 ring-4 ring-accent/10">
+        <div class="flex items-center justify-between gap-3">
+          <img src="/cih.png" alt="CIH Bank" width="331" height="93" class="h-8 w-auto rounded bg-white p-1 shadow-xs" loading="lazy" />
+          <span class="rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-bold text-accent">CIH Bank</span>
+        </div>
+        <h2 class="text-xl font-extrabold tracking-tight">{t.payTitle}</h2>
+        <div class="space-y-2">
+          <CopyRow label={t.holder} value={BANK.holder} copyable={false} />
+          <CopyRow label="RIB" value={BANK.rib} compact />
+          <CopyRow label="IBAN" value={BANK.iban} compact />
+          <CopyRow label="SWIFT" value={BANK.swift} />
+        </div>
         <p class="text-xs text-muted">{t.payNote}</p>
         {#if settings.currency === 'EUR'}
           <p class="rounded-lg bg-studio/10 px-3 py-2 text-xs text-studio dark:text-[#8fb0ff]">{t.eurNote}</p>
         {/if}
       </div>
 
-      <div id="order" bind:this={orderEl} class="flex flex-col gap-2.5 rounded-2xl border border-line bg-surface p-5">
-        <h2 class="text-lg font-bold">{t.orderTitle}</h2>
-        <CopyRow label={t.email} value={EMAIL} />
-        <CopyRow label={t.orderText} value={msg} multiline />
+      <div id="order" bind:this={orderEl} class="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6">
+        <h2 class="text-xl font-extrabold tracking-tight">{t.orderTitle}</h2>
+        <div class="space-y-2">
+          <CopyRow label={t.email} value={EMAIL} />
+          <CopyRow label={t.orderText} value={msg} multiline />
+        </div>
         <p class="text-xs text-muted">{t.orderNote}</p>
         <a href={mailto} class="mt-auto flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3.5 font-bold text-accent-ink transition-transform hover:-translate-y-0.5">
           <Mail class="size-5" />

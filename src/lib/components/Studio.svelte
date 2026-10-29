@@ -19,8 +19,13 @@
   const transforms = Object.fromEntries(SPOTS.map((s) => [s.id, quadTransform(s.box[0], s.box[1], s.quad)]));
 
   const label = $derived(order.text.trim() || t.adHere);
-  const fontSize = (box: [number, number]) =>
-    Math.min(box[1] * 0.3, (box[0] * 1.7) / Math.max(label.length, 4));
+  const fontSize = (box: [number, number]) => {
+    const chars = Math.max(label.length, 1);
+    // Allow text to scale nicely and wrap properly without overflowing the screen borders
+    const targetW = (box[0] * 0.8) / Math.max(Math.min(chars, 12), 3);
+    const targetH = box[1] * 0.22;
+    return Math.max(16, Math.min(targetH, targetW));
+  };
 
   function pick(e: Event) {
     const f = (e.currentTarget as HTMLInputElement).files?.[0];
@@ -89,15 +94,15 @@
             {#if on && order.image}
               <img src={order.image} alt="" class="size-full" style="object-fit:{order.fit}" />
             {:else if on}
-              <div class="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
+              <div class="flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center">
                 <span
                   dir="auto"
-                  class="leading-[1.05] font-extrabold tracking-tight break-all text-[#15141a]"
+                  class="max-w-full leading-[1.15] font-extrabold tracking-tight break-words text-[#15141a]"
                   style="font-size:{fontSize(s.box)}px"
                 >
                   {label}
                 </span>
-                <span class="h-2 w-1/3 rounded-full bg-pink"></span>
+                <span class="h-2 w-16 rounded-full bg-pink"></span>
               </div>
             {:else}
               <span class="font-mono text-xl tracking-[0.3em] text-neutral-400 uppercase">{t.available}</span>
