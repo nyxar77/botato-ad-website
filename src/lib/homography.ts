@@ -1,45 +1,25 @@
 type Pt = [number, number];
 
-/** Solve A·x = b with Gaussian elimination (partial pivoting). */
-function solve(A: number[][], b: number[]): number[] {
-  const n = b.length;
-  const M = A.map((row, i) => [...row, b[i]]);
-  for (let c = 0; c < n; c++) {
-    let p = c;
-    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
-    [M[c], M[p]] = [M[p], M[c]];
-    for (let r = c + 1; r < n; r++) {
-      const f = M[r][c] / M[c][c];
-      for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k];
-    }
-  }
-  const x = new Array<number>(n).fill(0);
-  for (let r = n - 1; r >= 0; r--) {
-    let s = M[r][n];
-    for (let k = r + 1; k < n; k++) s -= M[r][k] * x[k];
-    x[r] = s / M[r][r];
-  }
-  return x;
-}
-
 /**
- * CSS matrix3d() that maps a w×h box (transform-origin 0 0) onto four
- * destination corners [TL, TR, BR, BL]. Used to project the ad onto the screens.
+ * Pure 2D affine CSS matrix(a, b, c, d, tx, ty) that maps a w×h box
+ * (with transform-origin 0 0) onto the screen's [TL, TR, BR, BL] corners.
+ * Using a 2D matrix instead of projective 3D matrix3d avoids browser
+ * Z-plane depth-fighting where child text gets clipped behind the white background.
  */
 export function quadTransform(w: number, h: number, dst: [Pt, Pt, Pt, Pt]): string {
-  const src: Pt[] = [[0, 0], [w, 0], [w, h], [0, h]];
-  const A: number[][] = [];
-  const b: number[] = [];
-  for (let i = 0; i < 4; i++) {
-    const [x, y] = src[i];
-    const [u, v] = dst[i];
-    A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]);
-    b.push(u);
-    A.push([0, 0, 0, x, y, 1, -v * x, -v * y]);
-    b.push(v);
-  }
-  const [a, bb, c, d, e, f, g, hh] = solve(A, b);
-  // Column-major 4x4 for CSS.
-  const m = [a, d, 0, g, bb, e, 0, hh, 0, 0, 1, 0, c, f, 0, 1];
-  return `matrix3d(${m.map((n) => +n.toFixed(10)).join(',')})`;
+  const [tl, tr, br, bl] = dst;
+  // Average top/bottom and left/right edge vectors for best parallelogram fit
+  const ux = (tr[0] - tl[0] + (br[0] - bl[0])) / 2;
+  const uy = (tr[1] - tl[1] + (br[1] - bl[1])) / 2;
+  const vx = (bl[0] - tl[0] + (br[0] - tr[0])) / 2;
+  const vy = (bl[1] - tl[1] + (br[1] - tr[1])) / 2;
+
+  const a = ux / w;
+  const b = uy / w;
+  const c = vx / h;
+  const d = vy / h;
+  const tx = tl[0];
+  const ty = tl[1];
+
+  return `matrix(${[a, b, c, d, tx, ty].map((n) => +n.toFixed(6)).join(',')})`;
 }

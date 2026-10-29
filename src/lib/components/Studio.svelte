@@ -71,7 +71,7 @@
         />
       </picture>
 
-      <!-- Ad projection, clipped with inline SVG polygon so it never caches or clips text. -->
+      <!-- Ad projection using 2D affine transforms so child text never intersects the background in 3D space -->
       {#each SPOTS as s (s.id)}
         <div
           class="pointer-events-none absolute inset-0"
