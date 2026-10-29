@@ -136,14 +136,6 @@
             </li>
           {/each}
         </ul>
-
-        <a
-          href="#pay"
-          class="hidden items-center justify-between rounded-xl bg-accent px-5 py-3.5 font-bold text-accent-ink transition-opacity hover:opacity-90 lg:flex"
-        >
-          <span>{t.cta}</span>
-          <span class="font-mono">{settings.money(total)}</span>
-        </a>
       </div>
     </section>
 
