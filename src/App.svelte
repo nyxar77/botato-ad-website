@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { ToggleGroup, Tooltip } from 'bits-ui';
-  import { Mail, Minus, Plus, Presentation, Tv } from '@lucide/svelte';
+  import { Tooltip } from 'bits-ui';
+  import { Check, Mail, Minus, Plus, Presentation, Tv } from '@lucide/svelte';
   import { Tween } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
   import Studio from './lib/components/Studio.svelte';
@@ -8,19 +8,18 @@
   import CurrencySwitch from './lib/components/CurrencySwitch.svelte';
   import ThemeToggle from './lib/components/ThemeToggle.svelte';
   import CopyRow from './lib/components/CopyRow.svelte';
-  import { BANK, EMAIL, MAX_VIDEOS, PRICES } from './lib/config';
-  import type { SpotId } from './lib/i18n';
+  import { BANK, EMAIL, MAX_VIDEOS } from './lib/config';
   import { order } from './lib/order.svelte';
   import { settings } from './lib/settings.svelte';
 
   const t = $derived(settings.t);
-  const icons = { tv: Tv, gs: Presentation };
 
+  // Single unified offer: both screens for 600 DH (or €60)
   const unit = $derived(settings.price(order.spots));
   const total = $derived(unit * order.qty);
-  const shown = Tween.of(() => total, { duration: 350, easing: cubicOut });
+  const shown = Tween.of(() => total, { duration: 300, easing: cubicOut });
 
-  const spotName = $derived(order.spots.length === 2 ? t.both : t.spots[order.spots[0]].name);
+  const spotName = $derived(t.bundle);
   const msg = $derived(t.msg(spotName, order.qty, settings.money(total)));
   const mailto = $derived(
     `mailto:${EMAIL}?subject=${encodeURIComponent(t.subject(spotName))}&body=${encodeURIComponent(`${msg}\n\n${t.attach}`)}`,
@@ -44,14 +43,11 @@
 
 <Tooltip.Provider>
   <header class="sticky top-0 z-50 border-b border-line bg-bg/95 backdrop-blur-md">
-    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-      <div class="flex items-center gap-6">
-        <nav class="flex items-center gap-6 text-sm font-medium text-muted">
-          <a href="#spots" class="transition-colors hover:text-fg">{t.navSpots}</a>
-          <a href="#how" class="transition-colors hover:text-fg">{t.navHow}</a>
-          <a href="#pay" class="transition-colors hover:text-fg">{t.navPay}</a>
-        </nav>
-      </div>
+    <div class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4">
+      <nav class="flex items-center gap-5 text-sm font-medium text-muted">
+        <a href="#spots" class="transition-colors hover:text-fg">{t.navSpots}</a>
+        <a href="#pay" class="transition-colors hover:text-fg">{t.navPay}</a>
+      </nav>
       <div class="flex items-center gap-2">
         <LanguageSelect />
         <CurrencySwitch />
@@ -60,113 +56,104 @@
     </div>
   </header>
 
-  <main id="top" class="mx-auto max-w-6xl px-4 pb-28 lg:pb-16">
-    <!-- Hero: live preview + configurator -->
+  <main id="top" class="mx-auto max-w-5xl px-4 pb-28 lg:pb-16">
+    <!-- Hero: live preview + clean minimalist booking details -->
     <section id="spots" class="grid gap-8 pt-6 lg:grid-cols-12 lg:gap-10 lg:pt-10">
       <div class="lg:col-span-7">
         <div class="lg:sticky lg:top-24"><Studio /></div>
       </div>
 
-      <div class="flex flex-col gap-6 lg:col-span-5">
-        <div class="animate-rise">
-          <span class="inline-block rounded-md bg-pink/15 px-2 py-0.5 font-mono text-[11px] font-semibold tracking-wider text-pink uppercase">
+      <div class="flex flex-col gap-5 lg:col-span-5">
+        <div>
+          <span class="inline-block rounded-md bg-accent/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-accent">
             {t.kicker}
           </span>
-          <h1 class="mt-3 text-3xl leading-[1.1] font-extrabold tracking-tight text-balance sm:text-4xl">{t.title}</h1>
-          <p class="mt-3 text-muted text-pretty">{t.lead}</p>
+          <h1 class="mt-2.5 text-3xl leading-tight font-extrabold tracking-tight sm:text-4xl">{t.title}</h1>
+          <p class="mt-2 text-sm text-muted">{t.lead}</p>
         </div>
 
-        <div class="flex items-baseline gap-2">
-          <span class="font-mono text-4xl font-semibold tabular-nums">{settings.money(Math.round(shown.current))}</span>
+        <!-- Unified Price Display -->
+        <div class="flex items-baseline gap-2 border-y border-line py-4">
+          <span class="font-mono text-4xl font-bold tabular-nums">{settings.money(Math.round(shown.current))}</span>
           <span class="text-sm text-muted">{t.perVideo(order.qty)}</span>
         </div>
 
+        <!-- Single Offer Card (Both Screens Included) -->
         <div>
-          <div class="mb-2 flex items-baseline justify-between gap-2">
-            <span class="text-sm font-semibold">{t.spotsLabel}</span>
-            <span class="text-xs text-muted">{t.spotsHint}</span>
-          </div>
-          <ToggleGroup.Root
-            type="multiple"
-            bind:value={() => order.spots, (v) => order.setSpots(v as SpotId[])}
-            class="grid grid-cols-2 gap-2"
-          >
-            {#each ['tv', 'gs'] as const as id (id)}
-              {@const Icon = icons[id]}
-              <ToggleGroup.Item
-                value={id}
-                class="group flex flex-col items-start gap-2 rounded-xl border-2 border-line bg-surface p-3 text-start transition-colors hover:border-fg/25 data-[state=on]:border-accent"
-              >
-                <span class="flex w-full items-center justify-between">
-                  <Icon class="size-5 text-muted group-data-[state=on]:text-accent" />
-                  <span class="font-mono text-sm font-semibold">{settings.money(PRICES[settings.currency][id])}</span>
+          <div class="mb-2 text-sm font-semibold">{t.spotsLabel}</div>
+          <div class="flex items-center justify-between gap-3 rounded-xl border-2 border-accent bg-surface p-3.5">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center -space-x-1 rtl:space-x-reverse">
+                <span class="grid size-8 place-items-center rounded-lg bg-accent/15 text-accent">
+                  <Tv class="size-4" />
                 </span>
-                <span>
-                  <span class="block text-sm font-bold">{t.spots[id].name}</span>
-                  <span class="block text-xs text-muted">{t.spots[id].desc}</span>
+                <span class="grid size-8 place-items-center rounded-lg bg-accent/15 text-accent">
+                  <Presentation class="size-4" />
                 </span>
-              </ToggleGroup.Item>
-            {/each}
-          </ToggleGroup.Root>
-          <div class="mt-2 h-5 text-xs">
-            {#if order.spots.length === 2}
-              <span class="font-semibold text-accent">✓ {t.bundle}</span>
-            {:else}
-              <button type="button" class="text-muted underline underline-offset-2 hover:text-fg" onclick={() => order.setSpots(['gs', 'tv'])}>
-                + {t.both} · {settings.money(PRICES[settings.currency].tv + PRICES[settings.currency].gs)}
-              </button>
-            {/if}
+              </div>
+              <div>
+                <div class="text-sm font-bold">{t.spots.tv.name} + {t.spots.gs.name}</div>
+                <div class="text-xs text-muted">{t.both} ({t.bundle})</div>
+              </div>
+            </div>
+            <span class="grid size-6 shrink-0 place-items-center rounded-full bg-accent text-accent-ink">
+              <Check class="size-3.5" strokeWidth={3} />
+            </span>
           </div>
         </div>
 
-        <div class="flex items-center justify-between gap-4">
+        <!-- Number of videos selector -->
+        <div class="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-3.5">
           <span class="text-sm font-semibold">{t.qtyLabel}</span>
-          <div class="inline-flex items-center overflow-hidden rounded-xl border border-line bg-surface">
-            <button type="button" aria-label={t.minus} onclick={() => order.dec()} disabled={order.qty <= 1} class="grid size-10 place-items-center hover:bg-raised disabled:opacity-30">
+          <div class="inline-flex items-center overflow-hidden rounded-lg border border-line bg-bg">
+            <button
+              type="button"
+              aria-label={t.minus}
+              onclick={() => order.dec()}
+              disabled={order.qty <= 1}
+              class="grid size-9 place-items-center hover:bg-raised disabled:opacity-30"
+            >
               <Minus class="size-4" />
             </button>
             <span class="w-10 text-center font-mono font-semibold tabular-nums" aria-live="polite">{order.qty}</span>
-            <button type="button" aria-label={t.plus} onclick={() => order.inc()} disabled={order.qty >= MAX_VIDEOS} class="grid size-10 place-items-center hover:bg-raised disabled:opacity-30">
+            <button
+              type="button"
+              aria-label={t.plus}
+              onclick={() => order.inc()}
+              disabled={order.qty >= MAX_VIDEOS}
+              class="grid size-9 place-items-center hover:bg-raised disabled:opacity-30"
+            >
               <Plus class="size-4" />
             </button>
           </div>
         </div>
 
-        <ul class="space-y-1.5 border-t border-line pt-4 text-sm text-muted">
+        <ul class="space-y-1.5 text-sm text-muted">
           {#each t.bullets as b, i}
-            <li class="flex gap-2"><span class="mt-2 size-1.5 shrink-0 rounded-full {i === 1 ? 'bg-pink' : 'bg-accent'}"></span>{b}</li>
+            <li class="flex gap-2">
+              <span class="mt-2 size-1.5 shrink-0 rounded-full {i === 1 ? 'bg-pink' : 'bg-accent'}"></span>{b}
+            </li>
           {/each}
         </ul>
 
-        <a href="#order" class="hidden items-center justify-between rounded-xl bg-accent px-5 py-3.5 font-bold text-accent-ink transition-transform hover:-translate-y-0.5 lg:flex">
+        <a
+          href="#pay"
+          class="hidden items-center justify-between rounded-xl bg-accent px-5 py-3.5 font-bold text-accent-ink transition-opacity hover:opacity-90 lg:flex"
+        >
           <span>{t.cta}</span>
           <span class="font-mono">{settings.money(total)}</span>
         </a>
       </div>
     </section>
 
-    <!-- How it works -->
-    <section id="how" class="mt-20">
-      <h2 class="text-2xl font-extrabold tracking-tight">{t.howTitle}</h2>
-      <ol class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {#each t.steps as s, i}
-          <li class="rounded-2xl border border-line bg-surface p-4">
-            <span class="font-mono text-xs font-semibold {['text-studio', 'text-pink', 'text-accent', 'text-studio'][i]}">0{i + 1}</span>
-            <div class="mt-2 font-bold">{s.t}</div>
-            <p class="mt-1 text-sm text-muted">{s.d}</p>
-          </li>
-        {/each}
-      </ol>
-    </section>
-
     <!-- Payment + order -->
     <section id="pay" class="mt-12 grid gap-6 lg:grid-cols-2">
-      <div class="relative flex flex-col gap-3 rounded-2xl border-2 border-accent/60 bg-surface p-6 shadow-xl shadow-accent/5 ring-4 ring-accent/10">
+      <div class="relative flex flex-col gap-3 rounded-2xl border-2 border-accent bg-surface p-5 shadow-lg shadow-accent/5 ring-4 ring-accent/10">
         <div class="flex items-center justify-between gap-3">
           <img src="/cih.png" alt="CIH Bank" width="331" height="93" class="h-8 w-auto rounded bg-white p-1 shadow-xs" loading="lazy" />
-          <span class="rounded-full bg-accent/20 px-2.5 py-0.5 text-xs font-bold text-accent">CIH Bank</span>
+          <span class="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-bold text-accent">CIH Bank</span>
         </div>
-        <h2 class="text-xl font-extrabold tracking-tight">{t.payTitle}</h2>
+        <h2 class="text-lg font-extrabold tracking-tight">{t.payTitle}</h2>
         <div class="space-y-2">
           <CopyRow label={t.holder} value={BANK.holder} copyable={false} />
           <CopyRow label="RIB" value={BANK.rib} compact />
@@ -179,14 +166,17 @@
         {/if}
       </div>
 
-      <div id="order" bind:this={orderEl} class="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6">
-        <h2 class="text-xl font-extrabold tracking-tight">{t.orderTitle}</h2>
+      <div id="order" bind:this={orderEl} class="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5">
+        <h2 class="text-lg font-extrabold tracking-tight">{t.orderTitle}</h2>
         <div class="space-y-2">
           <CopyRow label={t.email} value={EMAIL} />
           <CopyRow label={t.orderText} value={msg} multiline />
         </div>
         <p class="text-xs text-muted">{t.orderNote}</p>
-        <a href={mailto} class="mt-auto flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3.5 font-bold text-accent-ink transition-transform hover:-translate-y-0.5">
+        <a
+          href={mailto}
+          class="mt-auto flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3.5 font-bold text-accent-ink transition-opacity hover:opacity-90"
+        >
           <Mail class="size-5" />
           {t.cta}
         </a>
@@ -195,21 +185,21 @@
   </main>
 
   <footer class="border-t border-line">
-    <div class="mx-auto max-w-6xl px-4 py-6 text-center text-xs text-muted">© 2026 botato · {t.footer}</div>
+    <div class="mx-auto max-w-5xl px-4 py-6 text-center text-xs text-muted">© 2026 · {t.footer}</div>
   </footer>
 
   <!-- Mobile order bar -->
   <div
-    class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md transition-transform duration-300 lg:hidden {orderVisible
+    class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-md transition-transform duration-300 lg:hidden {orderVisible
       ? 'translate-y-full'
       : ''}"
   >
-    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-3">
       <div class="leading-tight">
         <div class="text-xs text-muted">{t.total} · {spotName} × {order.qty}</div>
         <div class="font-mono text-lg font-semibold">{settings.money(total)}</div>
       </div>
-      <a href="#order" class="rounded-xl bg-accent px-5 py-3 text-sm font-bold text-accent-ink">{t.navPay}</a>
+      <a href="#pay" class="rounded-xl bg-accent px-5 py-3 text-sm font-bold text-accent-ink">{t.navPay}</a>
     </div>
   </div>
 </Tooltip.Provider>

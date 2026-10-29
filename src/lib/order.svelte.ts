@@ -2,7 +2,8 @@ import type { SpotId } from './i18n';
 import { MAX_VIDEOS } from './config';
 
 class Order {
-  spots = $state<SpotId[]>(['gs']);
+  // Single offer: both screens always included for 600 DH
+  spots = $state<SpotId[]>(['tv', 'gs']);
   qty = $state(1);
   /** Object URL of the uploaded preview image (never leaves the browser). */
   image = $state<string | null>(null);
@@ -13,15 +14,12 @@ class Order {
   has(id: SpotId) {
     return this.spots.includes(id);
   }
-  toggle(id: SpotId) {
-    if (this.has(id)) {
-      if (this.spots.length > 1) this.spots = this.spots.filter((s) => s !== id);
-    } else {
-      this.spots = [...this.spots, id].sort() as SpotId[];
-    }
+  toggle(_id: SpotId) {
+    // Screen selection disabled for now — single package includes both screens
   }
-  setSpots(v: SpotId[]) {
-    if (v.length) this.spots = [...v].sort() as SpotId[];
+  setSpots(_v: SpotId[]) {
+    // Keep both screens active
+    this.spots = ['tv', 'gs'];
   }
   inc() {
     if (this.qty < MAX_VIDEOS) this.qty++;

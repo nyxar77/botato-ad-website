@@ -1,14 +1,12 @@
 <script lang="ts">
   import { ToggleGroup } from 'bits-ui';
-  import { Check, ImagePlus, MousePointerClick, Plus, Type, X } from '@lucide/svelte';
-  import { SPOTS, STAGE, PRICES } from '../config';
+  import { Check, ImagePlus, Type, X } from '@lucide/svelte';
+  import { SPOTS, STAGE } from '../config';
   import { quadTransform } from '../homography';
-  import type { SpotId } from '../i18n';
   import { order } from '../order.svelte';
   import { settings } from '../settings.svelte';
 
   let cw = $state(0);
-  let hover = $state<SpotId | null>(null);
   let dragging = $state(false);
   let fileInput: HTMLInputElement;
 
@@ -21,10 +19,9 @@
   const label = $derived(order.text.trim() || t.adHere);
   const fontSize = (box: [number, number]) => {
     const chars = Math.max(label.length, 1);
-    // Allow text to scale nicely and wrap properly without overflowing the screen borders
-    const targetW = (box[0] * 0.8) / Math.max(Math.min(chars, 12), 3);
-    const targetH = box[1] * 0.22;
-    return Math.max(16, Math.min(targetH, targetW));
+    const targetW = (box[0] * 1.15) / Math.max(Math.min(chars, 10), 4);
+    const targetH = box[1] * 0.28;
+    return Math.max(22, Math.min(targetH, targetW));
   };
 
   function pick(e: Event) {
@@ -37,17 +34,11 @@
     const f = e.dataTransfer?.files?.[0];
     if (f?.type.startsWith('image/')) order.setImage(f);
   }
-  function key(e: KeyboardEvent, id: SpotId) {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      order.toggle(id);
-    }
-  }
 </script>
 
 <section aria-labelledby="preview-title" class="flex flex-col gap-3">
   <div
-    class="relative overflow-hidden rounded-2xl border border-line bg-black shadow-2xl shadow-black/30 ring-1 ring-black/5 {dragging
+    class="relative overflow-hidden rounded-2xl border border-line bg-black shadow-lg ring-1 ring-black/5 {dragging
       ? 'ring-4 ring-accent'
       : ''}"
     style="aspect-ratio:{STAGE.w}/{STAGE.h}"
@@ -82,19 +73,18 @@
 
       <!-- Ad projection, masked so I stay in front of the screen. -->
       <div
-        class="pointer-events-none absolute inset-0 mix-blend-multiply"
+        class="pointer-events-none absolute inset-0"
         style="mask-image:url(/screen-mask.png);-webkit-mask-image:url(/screen-mask.png);mask-size:100% 100%;-webkit-mask-size:100% 100%"
       >
         {#each SPOTS as s (s.id)}
-          {@const on = order.has(s.id)}
           <div
-            class="absolute top-0 left-0 grid origin-top-left place-items-center overflow-hidden bg-white transition-opacity duration-300"
-            style="width:{s.box[0]}px;height:{s.box[1]}px;transform:{transforms[s.id]};opacity:{on || hover === s.id ? 1 : 0.55}"
+            class="absolute top-0 left-0 grid origin-top-left place-items-center overflow-hidden bg-white"
+            style="width:{s.box[0]}px;height:{s.box[1]}px;transform:{transforms[s.id]}"
           >
-            {#if on && order.image}
+            {#if order.image}
               <img src={order.image} alt="" class="size-full" style="object-fit:{order.fit}" />
-            {:else if on}
-              <div class="flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center">
+            {:else}
+              <div class="flex h-full w-full flex-col items-center justify-center gap-3 p-5 text-center">
                 <span
                   dir="auto"
                   class="max-w-full leading-[1.15] font-extrabold tracking-tight break-words text-[#15141a]"
@@ -104,80 +94,50 @@
                 </span>
                 <span class="h-2 w-16 rounded-full bg-pink"></span>
               </div>
-            {:else}
-              <span class="font-mono text-xl tracking-[0.3em] text-neutral-400 uppercase">{t.available}</span>
             {/if}
           </div>
         {/each}
       </div>
 
-      <svg viewBox="0 0 {STAGE.w} {STAGE.h}" class="absolute inset-0 size-full">
+      <svg viewBox="0 0 {STAGE.w} {STAGE.h}" class="pointer-events-none absolute inset-0 size-full">
         <defs>
           <mask id="spot-cutout">
             <rect width={STAGE.w} height={STAGE.h} fill="white" />
             {#each SPOTS as s (s.id)}
-              <polygon
-                points={points(s.outline)}
-                fill="black"
-                class="transition-[fill-opacity] duration-300"
-                fill-opacity={order.has(s.id) || hover === s.id ? 1 : 0}
-              />
+              <polygon points={points(s.outline)} fill="black" />
             {/each}
           </mask>
         </defs>
-        <rect width={STAGE.w} height={STAGE.h} fill="#05050a" fill-opacity="0.55" mask="url(#spot-cutout)" />
+        <rect width={STAGE.w} height={STAGE.h} fill="#05050a" fill-opacity="0.35" mask="url(#spot-cutout)" />
 
         {#each SPOTS as s (s.id)}
-          {@const on = order.has(s.id)}
           <polygon
             points={points(s.outline)}
-            role="button"
-            tabindex="0"
-            aria-pressed={on}
-            aria-label={t.spots[s.id].name}
             fill="transparent"
             vector-effect="non-scaling-stroke"
             stroke-linejoin="round"
-            stroke-dasharray={on ? '12 12' : hover === s.id ? '0' : '6 8'}
-            style="stroke:{on ? 'var(--color-volt)' : 'white'};stroke-width:{on ? 3 : 2};stroke-opacity:{on || hover === s.id ? 1 : 0.5}"
-            class="cursor-pointer outline-none {on ? 'animate-ants' : ''}"
-            onclick={() => order.toggle(s.id)}
-            onkeydown={(e) => key(e, s.id)}
-            onpointerenter={() => (hover = s.id)}
-            onpointerleave={() => (hover = null)}
+            stroke-dasharray="12 12"
+            style="stroke:var(--color-volt);stroke-width:3;stroke-opacity:1"
+            class="animate-ants outline-none"
           />
         {/each}
       </svg>
     </div>
 
-    <!-- Labels live outside the scaled stage so the text stays readable on phones. -->
+    <!-- Clean static badges showing both screens included -->
     {#each SPOTS as s (s.id)}
-      {@const on = order.has(s.id)}
-      <button
-        type="button"
-        onclick={() => order.toggle(s.id)}
-        onpointerenter={() => (hover = s.id)}
-        onpointerleave={() => (hover = null)}
-        aria-pressed={on}
-        class="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full py-1 ps-1.5 pe-2.5 text-[11px] font-semibold whitespace-nowrap shadow-lg transition-all sm:text-xs {on
-          ? 'bg-volt text-volt-ink'
-          : 'bg-black/70 text-white backdrop-blur hover:bg-black/85'}"
+      <div
+        class="pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 rounded-full bg-volt py-1 ps-1.5 pe-2.5 text-[11px] font-semibold whitespace-nowrap text-volt-ink shadow-md sm:text-xs"
         style={pct(s.label[0], s.label[1])}
         dir={settings.lang === 'ar' ? 'rtl' : 'ltr'}
       >
-        <span class="grid size-4 place-items-center rounded-full {on ? 'bg-volt-ink text-volt' : 'bg-white/20'}">
-          {#if on}<Check class="size-3" strokeWidth={3} />{:else}<Plus class="size-3" strokeWidth={3} />{/if}
+        <span class="grid size-4 place-items-center rounded-full bg-volt-ink text-volt">
+          <Check class="size-3" strokeWidth={3} />
         </span>
         {t.spots[s.id].name}
-        <span class="font-mono opacity-70">{settings.money(PRICES[settings.currency][s.id])}</span>
-      </button>
+      </div>
     {/each}
   </div>
-
-  <p class="flex items-center gap-1.5 text-xs text-muted">
-    <MousePointerClick class="size-3.5 shrink-0" />
-    {t.clickToSelect}
-  </p>
 
   <div class="rounded-2xl border border-line bg-surface p-4">
     <div class="mb-3">

@@ -11,10 +11,10 @@ export const BANK = {
 
 export const MAX_VIDEOS = 10;
 
-/** Price per video, per spot. "Both" = sum of the two. EUR prices are rounded, not live-converted. */
+/** Price per video, per spot (300 DH each, total 600 DH for both). */
 export const PRICES: Record<Currency, Record<SpotId, number>> = {
-  MAD: { tv: 200, gs: 300 },
-  EUR: { tv: 20, gs: 30 },
+  MAD: { tv: 300, gs: 300 },
+  EUR: { tv: 30, gs: 30 },
 };
 
 type Pt = [number, number];
