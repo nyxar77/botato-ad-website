@@ -25,10 +25,11 @@
     `mailto:${EMAIL}?subject=${encodeURIComponent(t.subject(spotName))}&body=${encodeURIComponent(`${msg}\n\n${t.attach}`)}`,
   );
 
-  // Keep <html lang/dir> in sync with the chosen language.
+  // Keep <html lang/dir> and document.title in sync with the chosen language.
   $effect(() => {
     document.documentElement.lang = settings.lang;
     document.documentElement.dir = settings.lang === 'ar' ? 'rtl' : 'ltr';
+    document.title = t.tagline;
   });
 
   // Hide the mobile bottom bar once the order section is on screen.
