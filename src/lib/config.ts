@@ -23,6 +23,8 @@ export type Spot = {
   id: SpotId;
   /** Visible outline of the screen in the 1200x678 studio photo. */
   outline: Pt[];
+  /** Exact visible polygon of the screen (excluding foreground chair/plushie) in 1200x678 coordinates. */
+  clip: Pt[];
   /** Corners (TL, TR, BR, BL) where ad content gets projected. */
   quad: [Pt, Pt, Pt, Pt];
   /** Size of the flat content box before projection (sets its aspect ratio). */
@@ -37,6 +39,7 @@ export const SPOTS: Spot[] = [
   {
     id: 'tv',
     outline: [[35, 0], [92, 0], [94, 6], [245, 48], [246, 176], [37, 157]],
+    clip: [[35, 0], [92, 0], [94, 6], [245, 48], [246, 176], [37, 157]],
     quad: [[36, 2], [245, 48], [246, 176], [37, 157]],
     box: [320, 200],
     label: [140, 200],
@@ -44,6 +47,32 @@ export const SPOTS: Spot[] = [
   {
     id: 'gs',
     outline: [[638, 64], [986, 51], [950, 350], [626, 350]],
+    clip: [
+      [638, 64],
+      [986, 51],
+      [950, 345],
+      [940, 350],
+      [910, 350],
+      [905, 340],
+      [900, 332],
+      [890, 326],
+      [885, 325],
+      [875, 328],
+      [865, 335],
+      [860, 350],
+      [740, 350],
+      [735, 342],
+      [725, 326],
+      [715, 301],
+      [705, 280],
+      [695, 264],
+      [685, 258],
+      [675, 254],
+      [665, 250],
+      [650, 248],
+      [635, 247],
+      [627, 245],
+    ],
     quad: [[638, 64], [986, 51], [950, 350], [626, 350]],
     box: [400, 320],
     label: [810, 30],

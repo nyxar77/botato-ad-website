@@ -71,12 +71,12 @@
         />
       </picture>
 
-      <!-- Ad projection, masked so I stay in front of the screen. -->
-      <div
-        class="pointer-events-none absolute inset-0"
-        style="mask-image:url(/screen-mask.png);-webkit-mask-image:url(/screen-mask.png);mask-size:100% 100%;-webkit-mask-size:100% 100%"
-      >
-        {#each SPOTS as s (s.id)}
+      <!-- Ad projection, clipped with inline SVG polygon so it never caches or clips text. -->
+      {#each SPOTS as s (s.id)}
+        <div
+          class="pointer-events-none absolute inset-0"
+          style="clip-path:polygon({s.clip.map(([x, y]) => `${x}px ${y}px`).join(',')})"
+        >
           <div
             class="absolute top-0 left-0 grid origin-top-left place-items-center overflow-hidden bg-white"
             style="width:{s.box[0]}px;height:{s.box[1]}px;transform:{transforms[s.id]}"
@@ -96,8 +96,8 @@
               </div>
             {/if}
           </div>
-        {/each}
-      </div>
+        </div>
+      {/each}
 
       <svg viewBox="0 0 {STAGE.w} {STAGE.h}" class="pointer-events-none absolute inset-0 size-full">
         <defs>
