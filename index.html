@@ -15,12 +15,29 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preload" as="image" href="/studio.webp" type="image/webp" fetchpriority="high" />
     <script>
-      // Default to Light Mode & Arabic on every page load so users always start with the intended setup.
+      // Respect user/browser preferences if available, otherwise fall back to Arabic + Light Mode.
       (function () {
-        var d = document.documentElement;
-        d.classList.remove('dark');
-        d.lang = 'ar';
-        d.dir = 'rtl';
+        try {
+          var d = document.documentElement;
+          var t = localStorage.getItem('botato:theme');
+          var dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+          d.classList.toggle('dark', dark);
+
+          var l = localStorage.getItem('botato:lang');
+          if (!l) {
+            var langs = navigator.languages || [navigator.language || 'ar'];
+            for (var i = 0; i < langs.length; i++) {
+              var b = String(langs[i]).toLowerCase().split('-')[0];
+              if (b === 'ar' || b === 'fr' || b === 'en') {
+                l = b;
+                break;
+              }
+            }
+          }
+          l = l || 'ar';
+          d.lang = l;
+          d.dir = l === 'ar' ? 'rtl' : 'ltr';
+        } catch (e) {}
       })();
     </script>
   </head>
