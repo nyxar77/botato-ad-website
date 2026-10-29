@@ -1,7 +1,12 @@
 import { dict, LANGS, type Currency, type Lang, type SpotId } from './i18n';
 import { PRICES } from './config';
 
-const KEY = { lang: 'botato:lang', cur: 'botato:currency', theme: 'botato:theme' };
+// Dedicated keys for explicit user choices, so default is always Arabic + Light + MAD on first visit
+const KEY = {
+  lang: 'botato:user_lang',
+  cur: 'botato:user_currency',
+  theme: 'botato:user_theme',
+};
 
 const read = (k: string) => {
   try {
@@ -16,44 +21,29 @@ const write = (k: string, v: string) => {
   } catch {}
 };
 
-/** First supported language from the browser/system preferences, falling back to Arabic ('ar') by default. */
-export function detectLang(): Lang {
-  const prefs = navigator.languages?.length ? navigator.languages : [navigator.language];
-  for (const p of prefs) {
-    const base = p?.toLowerCase().split('-')[0];
-    if (LANGS.some((l) => l.code === base)) return base as Lang;
-  }
+function initialLang(): Lang {
+  const saved = read(KEY.lang);
+  if (saved && LANGS.some((l) => l.code === saved)) return saved as Lang;
   return 'ar';
 }
 
-/**
- * Dirhams by default for Morocco or when no foreign euro signal is detected;
- * switches to EUR if the user's browser timezone is in Europe (outside Morocco).
- */
-export function detectCurrency(): Currency {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
-    if (tz === 'Africa/Casablanca' || tz === 'Africa/El_Aaiun') return 'MAD';
-    if (tz.startsWith('Europe/')) return 'EUR';
-  } catch {}
+function initialCurrency(): Currency {
+  const saved = read(KEY.cur);
+  if (saved === 'MAD' || saved === 'EUR') return saved;
   return 'MAD';
 }
 
-export function detectDark(): boolean {
+function initialDark(): boolean {
   const saved = read(KEY.theme);
   if (saved === 'dark' || saved === 'light') return saved === 'dark';
-  try {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 class Settings {
-  lang = $state<Lang>((read(KEY.lang) as Lang) || detectLang());
-  currency = $state<Currency>((read(KEY.cur) as Currency) || detectCurrency());
+  lang = $state<Lang>(initialLang());
+  currency = $state<Currency>(initialCurrency());
   currencyIsAuto = $state(!read(KEY.cur));
-  dark = $state(detectDark());
+  dark = $state(initialDark());
 
   t = $derived(dict[this.lang]);
 

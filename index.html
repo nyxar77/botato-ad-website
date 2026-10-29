@@ -21,26 +21,14 @@
           for (var i = 0; i < regs.length; i++) regs[i].unregister();
         });
       }
-      // Respect user/browser preferences if available, otherwise fall back to Arabic + Light Mode.
+      // Default to Arabic + Light Mode unless the user explicitly picked a preference in the UI.
       (function () {
         try {
           var d = document.documentElement;
-          var t = localStorage.getItem('botato:theme');
-          var dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-          d.classList.toggle('dark', dark);
+          var t = localStorage.getItem('botato:user_theme') || 'light';
+          d.classList.toggle('dark', t === 'dark');
 
-          var l = localStorage.getItem('botato:lang');
-          if (!l) {
-            var langs = navigator.languages || [navigator.language || 'ar'];
-            for (var i = 0; i < langs.length; i++) {
-              var b = String(langs[i]).toLowerCase().split('-')[0];
-              if (b === 'ar' || b === 'fr' || b === 'en') {
-                l = b;
-                break;
-              }
-            }
-          }
-          l = l || 'ar';
+          var l = localStorage.getItem('botato:user_lang') || 'ar';
           d.lang = l;
           d.dir = l === 'ar' ? 'rtl' : 'ltr';
         } catch (e) {}
